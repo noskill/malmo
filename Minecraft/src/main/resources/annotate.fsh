@@ -20,18 +20,18 @@ void main()
         // This is tailored for the Minecraft block texture atlas, which should be a 512x512 texture,
         // with each block occupying a 32x32 pixel cell.
         // First get an x and y index for the block:
-        float x = floor(texture_coordinate.x * 32.0);
-        float y = floor(texture_coordinate.y * 32.0);
+        // between zero and 32
+        float x = ceil(texture_coordinate.x * 32.0) - 1;
+        float y = ceil(texture_coordinate.y * 32.0) - 1;
         // Convert to a flat block ID:
         i = x + y * 32.0;
         // Now turn that into an RGB tuple:
-        float base = 11.0;
-        r = i - base * floor(i / base);
-        i = (i - r) / base;
-        g = i - base * floor(i / base);
-        i = (i - g) / base;
-        b = i;
-        gl_FragColor = vec4(r / base, g / base, b / base, 1.0);
+        float base = 1024.0;
+        if (abs(i - 269) < 1) {
+            i -= 5;
+        }
+        r = i;
+        gl_FragColor = vec4(r / base, r / base, r / base, 1.0);
     }
     else
     {
