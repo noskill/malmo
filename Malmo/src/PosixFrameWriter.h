@@ -20,6 +20,8 @@
 #ifndef _POSIXFRAMEWRITER_H_
 #define _POSIXFRAMEWRITER_H_
 
+#include <stack>
+
 // Local:
 #include "VideoFrameWriter.h"
 
