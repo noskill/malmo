@@ -812,15 +812,18 @@ namespace malmo
     {
         boost::lock_guard<boost::mutex> scope_guard(this->world_state_mutex);
 
-        switch( this->video_policy )
-        {
-            case VideoPolicy::LATEST_FRAME_ONLY:
+        if (this->video_policy == VideoPolicy::LATEST_FRAME_ONLY) {
+            if (message.frametype == TimestampedVideoFrame::COLOUR_MAP) {
+                this->world_state.video_frames_colourmap.clear();
+            } else {
                 this->world_state.video_frames.clear();
-                this->world_state.video_frames.push_back( boost::make_shared<TimestampedVideoFrame>( message ) );
-                break;
-            case VideoPolicy::KEEP_ALL_FRAMES:
-                this->world_state.video_frames.push_back( boost::make_shared<TimestampedVideoFrame>( message ) );
-                break;
+            }
+        }
+
+        if (message.frametype == TimestampedVideoFrame::COLOUR_MAP) {
+            this->world_state.video_frames_colourmap.push_back( boost::make_shared<TimestampedVideoFrame>( message ) );
+        } else {
+            this->world_state.video_frames.push_back( boost::make_shared<TimestampedVideoFrame>( message ) );
         }
         
         this->world_state.number_of_video_frames_since_last_state++;

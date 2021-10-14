@@ -41,6 +41,7 @@ namespace malmo
         this->observations.clear();
         this->rewards.clear();
         this->video_frames.clear();
+        this->video_frames_colourmap.clear();
         this->mission_control_messages.clear();
         this->errors.clear();
     }
