@@ -30,6 +30,10 @@ void main()
         if (abs(i - 269) < 1) {
             i -= 5;
         }
+        // fix fire and dandelion
+        if (abs(i - 266) < 3) {
+            i += 8;
+        }
         r = i;
         gl_FragColor = vec4(r / base, r / base, r / base, 1.0);
     }
