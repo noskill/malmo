@@ -40,7 +40,7 @@ foreach( file ${CPP_SAMPLE_SOURCES} )
   get_filename_component( sample_name ${file} NAME_WE )
   
   add_executable( ${sample_name} ${file} )
-  target_link_libraries( ${sample_name} Malmo )
+  target_link_libraries( ${sample_name} Malmo ${PYTHON_LIBRARIES} )
 
   install( TARGETS ${sample_name} DESTINATION Cpp_Examples )
   

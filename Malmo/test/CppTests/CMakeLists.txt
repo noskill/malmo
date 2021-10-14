@@ -51,7 +51,7 @@ foreach( file ${CPP_TEST_SOURCES} )
   set( test_name "CppTests_${test_name}" )
   
   add_executable( ${test_name} ${file} )
-  target_link_libraries( ${test_name} Malmo )
+  target_link_libraries( ${test_name} Malmo ${PYTHON_LIBRARIES}  )
   
   add_test( NAME ${test_name} COMMAND ${test_name} )
   set_tests_properties( ${test_name} PROPERTIES ENVIRONMENT "MALMO_XSD_PATH=$ENV{MALMO_XSD_PATH}" )
