@@ -52,14 +52,19 @@ namespace malmo
         , zPos(0)
         , yaw(0)
         , pitch(0)
+        , projectionMatrix{ 0 }
     {
+
         // First extract the positional information from the header:
         uint32_t * pInt = reinterpret_cast<uint32_t*>(&(message.data[0]));
         this->xPos = ntoh_float(*pInt); pInt++;
         this->yPos = ntoh_float(*pInt); pInt++;
         this->zPos = ntoh_float(*pInt); pInt++;
         this->yaw = ntoh_float(*pInt); pInt++;
-        this->pitch = ntoh_float(*pInt);
+        this->pitch = ntoh_float(*pInt); pInt++;
+        for(short i=0; i < 16; i++){
+            this->projectionMatrix[i] = ntoh_float(*pInt); pInt++;
+        }
 
         const int stride = width * channels;
         switch (transform){

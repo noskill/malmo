@@ -24,6 +24,7 @@ import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
 
 import com.microsoft.Malmo.Utils.AddressHelper;
 import net.minecraft.client.Minecraft;
@@ -35,10 +36,14 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.Phase;
 import net.minecraftforge.fml.common.gameevent.TickEvent.RenderTickEvent;
 
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
+import net.minecraft.client.renderer.GLAllocation;
+import net.minecraft.client.renderer.GlStateManager;
 
 import com.microsoft.Malmo.MissionHandlerInterfaces.IVideoProducer;
 import com.microsoft.Malmo.MissionHandlerInterfaces.IVideoProducer.VideoType;
@@ -57,6 +62,10 @@ import com.microsoft.Malmo.Utils.TextureHelper;
  * We use this to send video frames over sockets.
  */
 public class VideoHook {
+
+
+    public static final FloatBuffer projection = GLAllocation.createDirectFloatBuffer(16);
+    public static final FloatBuffer modelview = GLAllocation.createDirectFloatBuffer(16);
     /**
      * If the sockets are not yet open we delay before retrying. Value is in
      * nanoseconds.
@@ -99,7 +108,8 @@ public class VideoHook {
 
     ByteBuffer buffer = null;
     ByteBuffer headerbuffer = null;
-    final int POS_HEADER_SIZE = 20; // 20 bytes for the five floats governing x,y,z,yaw and pitch.
+    final int POS_HEADER_SIZE = 20 + 16 * 4; // 20 bytes for the five floats governing x,y,z,yaw and pitch.
+    // + 16 bytes for projection matrix
 
     // For diagnostic purposes:
     private long timeOfFirstFrame = 0;
@@ -125,7 +135,7 @@ public class VideoHook {
         this.observer = observer;
         this.envServer = envServer;
         this.buffer = BufferUtils.createByteBuffer(this.videoProducer.getRequiredBufferSize());
-        this.headerbuffer = ByteBuffer.allocate(20).order(ByteOrder.BIG_ENDIAN);
+        this.headerbuffer = ByteBuffer.allocate(20 + 16 * 4).order(ByteOrder.BIG_ENDIAN);
         this.renderWidth = videoProducer.getWidth();
         this.renderHeight = videoProducer.getHeight();
         resizeIfNeeded();
@@ -248,6 +258,33 @@ public class VideoHook {
             resizeIfNeeded();
         }
     }
+
+    protected void writeProjectionMatrix(ByteBuffer buffer){
+        GlStateManager.getFloat(GL11.GL_PROJECTION_MATRIX, projection);
+        GlStateManager.getFloat(GL11.GL_MODELVIEW_MATRIX, modelview);
+        Matrix4f projectionMatrix = (Matrix4f) new Matrix4f().load(projection.asReadOnlyBuffer());
+        Matrix4f modelViewMatrix = (Matrix4f) new Matrix4f().load(modelview.asReadOnlyBuffer());
+        Matrix4f result = Matrix4f.mul(modelViewMatrix, projectionMatrix, null);
+        buffer.putFloat(result.m00);
+        buffer.putFloat(result.m01);
+        buffer.putFloat(result.m02);
+        buffer.putFloat(result.m03);
+
+        buffer.putFloat(result.m10);
+        buffer.putFloat(result.m11);
+        buffer.putFloat(result.m12);
+        buffer.putFloat(result.m13);
+
+        buffer.putFloat(result.m20);
+        buffer.putFloat(result.m21);
+        buffer.putFloat(result.m22);
+        buffer.putFloat(result.m23);
+
+        buffer.putFloat(result.m30);
+        buffer.putFloat(result.m31);
+        buffer.putFloat(result.m32);
+        buffer.putFloat(result.m33);
+    }
     
     /**
      * Called when the world has been rendered but not yet the GUI or player hand.
@@ -313,6 +350,7 @@ public class VideoHook {
                 this.headerbuffer.putFloat(z);
                 this.headerbuffer.putFloat(yaw);
                 this.headerbuffer.putFloat(pitch);
+                this.writeProjectionMatrix(this.headerbuffer);
                 // Write the frame data:
                 this.videoProducer.getFrame(this.missionInit, this.buffer);
                 // The buffer gets flipped by getFrame(), but we need to flip our header buffer ourselves:
