@@ -47,7 +47,8 @@ namespace malmo
             , COLOUR_MAP              //!< 24bpp colour map
             , _MAX_FRAME_TYPE
         };
-        static const int FRAME_HEADER_SIZE = 20 + 16 * 4;
+        // check also Minecraft/src/main/java/com/microsoft/Malmo/Client/VideoHook.java
+        static const int FRAME_HEADER_SIZE = 20 + (16 * 4 * 2);
 
         //! The timestamp.
         boost::posix_time::ptime timestamp;
@@ -79,8 +80,9 @@ namespace malmo
         //! The z pos of the player at render time
         float zPos;
 
-        // world to pixel projection matrix
-        std::vector<float> projectionMatrix;
+        // camera to pixel projection matrix
+        std::vector<float> calibrationMatrix;
+        std::vector<float> modelViewMatrix;
 
         //! The pixels, stored as channels then columns then rows. Length should be width*height*channels.
         std::vector<unsigned char> pixels;

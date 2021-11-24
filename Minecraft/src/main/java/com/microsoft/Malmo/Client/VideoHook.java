@@ -108,7 +108,8 @@ public class VideoHook {
 
     ByteBuffer buffer = null;
     ByteBuffer headerbuffer = null;
-    final int POS_HEADER_SIZE = 20 + 16 * 4; // 20 bytes for the five floats governing x,y,z,yaw and pitch.
+    // check also Malmo/src/TimestampedVideoFrame.h
+    final int POS_HEADER_SIZE = 20 + (16 * 4 * 2); // 20 bytes for the five floats governing x,y,z,yaw and pitch.
     // + 16 bytes for projection matrix
 
     // For diagnostic purposes:
@@ -135,7 +136,7 @@ public class VideoHook {
         this.observer = observer;
         this.envServer = envServer;
         this.buffer = BufferUtils.createByteBuffer(this.videoProducer.getRequiredBufferSize());
-        this.headerbuffer = ByteBuffer.allocate(20 + 16 * 4).order(ByteOrder.BIG_ENDIAN);
+        this.headerbuffer = ByteBuffer.allocate(20 + (16 * 4 * 2)).order(ByteOrder.BIG_ENDIAN);
         this.renderWidth = videoProducer.getWidth();
         this.renderHeight = videoProducer.getHeight();
         resizeIfNeeded();
@@ -259,12 +260,7 @@ public class VideoHook {
         }
     }
 
-    protected void writeProjectionMatrix(ByteBuffer buffer){
-        GlStateManager.getFloat(GL11.GL_PROJECTION_MATRIX, projection);
-        GlStateManager.getFloat(GL11.GL_MODELVIEW_MATRIX, modelview);
-        Matrix4f projectionMatrix = (Matrix4f) new Matrix4f().load(projection.asReadOnlyBuffer());
-        Matrix4f modelViewMatrix = (Matrix4f) new Matrix4f().load(modelview.asReadOnlyBuffer());
-        Matrix4f result = Matrix4f.mul(modelViewMatrix, projectionMatrix, null);
+    protected void writeProjectionMatrix(ByteBuffer buffer, Matrix4f result){
         buffer.putFloat(result.m00);
         buffer.putFloat(result.m01);
         buffer.putFloat(result.m02);
@@ -350,7 +346,13 @@ public class VideoHook {
                 this.headerbuffer.putFloat(z);
                 this.headerbuffer.putFloat(yaw);
                 this.headerbuffer.putFloat(pitch);
-                this.writeProjectionMatrix(this.headerbuffer);
+                GlStateManager.getFloat(GL11.GL_PROJECTION_MATRIX, projection);
+                GlStateManager.getFloat(GL11.GL_MODELVIEW_MATRIX, modelview);
+                Matrix4f projectionMatrix = (Matrix4f) new Matrix4f().load(projection.asReadOnlyBuffer());
+                Matrix4f modelViewMatrix = (Matrix4f) new Matrix4f().load(modelview.asReadOnlyBuffer());
+
+                this.writeProjectionMatrix(this.headerbuffer, modelViewMatrix);
+                this.writeProjectionMatrix(this.headerbuffer, projectionMatrix);
                 // Write the frame data:
                 this.videoProducer.getFrame(this.missionInit, this.buffer);
                 // The buffer gets flipped by getFrame(), but we need to flip our header buffer ourselves:

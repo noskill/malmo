@@ -38,8 +38,8 @@ namespace malmo
         , pitch(0)
         , frametype(VIDEO)
     {
-    projectionMatrix = std::vector<float>(16, 0.0);
-
+       calibrationMatrix = std::vector<float>(16, 0.0);
+       modelViewMatrix = std::vector<float>(16, 0.0);
     }
 
     TimestampedVideoFrame::TimestampedVideoFrame(short width, short height, short channels, TimestampedUnsignedCharVector& message, Transform transform, FrameType frametype)
@@ -54,8 +54,9 @@ namespace malmo
         , yaw(0)
         , pitch(0)
     {
+        calibrationMatrix = std::vector<float>(16, 0.0);
+        modelViewMatrix = std::vector<float>(16, 0.0);
 
-        projectionMatrix = std::vector<float>(16, 0.0);
         // First extract the positional information from the header:
         uint32_t * pInt = reinterpret_cast<uint32_t*>(&(message.data[0]));
         this->xPos = ntoh_float(*pInt); pInt++;
@@ -64,7 +65,11 @@ namespace malmo
         this->yaw = ntoh_float(*pInt); pInt++;
         this->pitch = ntoh_float(*pInt); pInt++;
         for(short i=0; i < 16; i++){
-            this->projectionMatrix[i] = ntoh_float(*pInt); pInt++;
+            this->modelViewMatrix[i] = ntoh_float(*pInt); pInt++;
+        }
+
+        for(short i=0; i < 16; i++){
+            this->calibrationMatrix[i] = ntoh_float(*pInt); pInt++;
         }
 
         const int stride = width * channels;
