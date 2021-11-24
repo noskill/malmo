@@ -80,7 +80,7 @@ namespace malmo
         float zPos;
 
         // world to pixel projection matrix
-        float projectionMatrix[16];
+        std::vector<float> projectionMatrix;
 
         //! The pixels, stored as channels then columns then rows. Length should be width*height*channels.
         std::vector<unsigned char> pixels;

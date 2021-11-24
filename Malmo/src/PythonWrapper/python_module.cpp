@@ -358,6 +358,9 @@ BOOST_PYTHON_MODULE(MalmoPython)
         .value("LUMINANCE", TimestampedVideoFrame::LUMINANCE)
         .value("COLOUR_MAP", TimestampedVideoFrame::COLOUR_MAP);
 
+    class_<std::vector<float> >("FloatVec")
+        .def(vector_indexing_suite<std::vector<float> >());
+
     register_ptr_to_python< boost::shared_ptr< TimestampedVideoFrame > >();
     class_< TimestampedVideoFrame >( "TimestampedVideoFrame", no_init )
         .add_property( "timestamp",   make_getter(&TimestampedVideoFrame::timestamp, return_value_policy<return_by_value>()))
@@ -370,6 +373,7 @@ BOOST_PYTHON_MODULE(MalmoPython)
         .def_readonly( "yaw",         &TimestampedVideoFrame::yaw)
         .def_readonly( "pitch",       &TimestampedVideoFrame::pitch)
         .def_readonly( "frametype",   &TimestampedVideoFrame::frametype)
+        .add_property( "projectionMatrix",      make_getter(&TimestampedVideoFrame::projectionMatrix, return_value_policy<return_by_value>()))
         .add_property( "pixels",      make_getter(&TimestampedVideoFrame::pixels, return_value_policy<return_by_value>()))
         .def(self_ns::str(self_ns::self))
     ;

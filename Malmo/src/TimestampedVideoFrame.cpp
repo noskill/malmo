@@ -38,6 +38,7 @@ namespace malmo
         , pitch(0)
         , frametype(VIDEO)
     {
+    projectionMatrix = std::vector<float>(16, 0.0);
 
     }
 
@@ -52,9 +53,9 @@ namespace malmo
         , zPos(0)
         , yaw(0)
         , pitch(0)
-        , projectionMatrix{ 0 }
     {
 
+        projectionMatrix = std::vector<float>(16, 0.0);
         // First extract the positional information from the header:
         uint32_t * pInt = reinterpret_cast<uint32_t*>(&(message.data[0]));
         this->xPos = ntoh_float(*pInt); pInt++;
